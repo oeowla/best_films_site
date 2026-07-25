@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — best_film</title>
+    {% load static %}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Контейнер всей страницы */
+        .auth-page {
+            width: 100%;
+            max-width: 480px;  /* Шире чем было */
+            padding: 1rem;
+        }
+        
+        /* Сама форма */
+        .auth-form {
+            background: #16213e;
+            padding: 3rem 2.5rem;  /* Больше отступов */
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        
+        /* Заголовок */
+        .auth-form h2 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.2rem;  /* Крупнее */
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        
+        /* Группа с полем ввода и кнопкой глаза */
+        .input-group {
+            position: relative;
+            margin-bottom: 1.2rem;
+        }
+        
+        /* Все поля ввода */
+        .auth-form input[type="text"],
+        .auth-form input[type="email"],
+        .auth-form input[type="password"] {
+            width: 100%;
+            padding: 1rem 1.2rem;  /* Выше поля */
+            border-radius: 12px;
+            border: 1px solid #333;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 1.05rem;  /* Крупнее шрифт */
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        /* Поле пароля — отступ справа для кнопки глаза */
+        .auth-form input[type="password"] {
+            padding-right: 3rem;
+        }
+        
+        .auth-form input:focus {
+            border-color: #e94560;
+            box-shadow: 0 0 12px rgba(233, 69, 96, 0.2);
+        }
+        
+        /* Кнопка показать/скрыть пароль (глаз) */
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            color: #888;
+            transition: color 0.3s;
+            /* Убираем стандартный стиль кнопки при нажатии */
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        
+        .toggle-password:hover {
+            color: #fff;
+        }
+        
+        /* Иконка глаза (SVG) */
+        .toggle-password svg {
+            width: 22px;
+            height: 22px;
+            pointer-events: none;  /* Клик проходит сквозь SVG на кнопку */
+        }
+        
+        /* Кнопка входа */
+        .auth-form button[type="submit"] {
+            width: 100%;
+            padding: 1rem;
+            background: #e94560;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin-top: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        
+        .auth-form button[type="submit"]:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+        }
+        
+        .auth-form button[type="submit"]:active {
+            transform: scale(0.98);
+        }
+        
+        /* Сообщения об ошибках Django */
+        .errorlist {
+            color: #e94560;
+            list-style: none;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            padding: 0;
+        }
+        
+        .errorlist li {
+            margin-bottom: 0.3rem;
+        }
+        
+        /* Блок сообщений */
+        .messages {
+            margin-bottom: 1.2rem;
+        }
+        
+        .message {
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .message.error {
+            background: rgba(233, 69, 96, 0.15);
+            color: #e94560;
+        }
+        
+        .message.success {
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+        
+        /* Ссылка на регистрацию */
+        .auth-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #888;
+            font-size: 0.95rem;
+        }
+        
+        .auth-link a {
+            color: #e94560;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .auth-link a:hover {
+            color: #ff6b81;
+            text-decoration: underline;
+        }
+        
+        /* Ссылка "На главную" */
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        
+        .back-link:hover {
+            color: #e94560;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-page">
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            <h2>Вход</h2>
+            
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Поле почты (username в Django — это поле для идентификации) -->
+            <div class="input-group">
+                {{ form.username }}
+            </div>
+            
+            <!-- Поле пароля с кнопкой глаза -->
+            <div class="input-group">
+                {{ form.password }}
+                <button type="button" class="toggle-password" title="Показать пароль">
+                    <!-- Иконка глаза -->
+                    <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+            
+            {% if form.errors %}
+                <ul class="errorlist">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            
+            <button type="submit">Войти</button>
+            
+            <div class="auth-link">
+                У вас ещё нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться →</a>
+            </div>
+            
+            <a href="/" class="back-link">← На главную</a>
+        </form>
+    </div>
+    
+    <!-- Скрипт для кнопки глаза -->
+    <script>
+        // Находим кнопку и поле пароля
+        const toggleBtn = document.querySelector('.toggle-password');
+        const passwordInput = document.querySelector('input[type="password"]');
+        const eyeIcon = document.getElementById('eye-icon');
+        
+        // SVG для открытого глаза (пароль виден)
+        const eyeOpen = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+        
+        // SVG для перечёркнутого глаза (пароль скрыт)
+        const eyeClosed = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+        
+        // Флаг: виден ли пароль сейчас
+        let passwordVisible = false;
+        
+        // При нажатии на кнопку
+        toggleBtn.addEventListener('mousedown', function(e) {
+            e.preventDefault();  // Чтобы поле не теряло фокус
+            passwordInput.type = 'text';
+            eyeIcon.innerHTML = eyeClosed;
+            passwordVisible = true;
+        });
+        
+        // При отпускании кнопки
+        toggleBtn.addEventListener('mouseup', function() {
+            passwordInput.type = 'password';
+            eyeIcon.innerHTML = eyeOpen;
+            passwordVisible = false;
+        });
+        
+        // Если мышь ушла за пределы кнопки
+        toggleBtn.addEventListener('mouseleave', function() {
+            passwordInput.type = 'password';
+            eyeIcon.innerHTML = eyeOpen;
+            passwordVisible = false;
+        });
+        
+        // Для мобильных — переключение по тапу
+        toggleBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (!passwordVisible) {
+                passwordInput.type = 'text';
+                eyeIcon.innerHTML = eyeClosed;
+                passwordVisible = true;
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.innerHTML = eyeOpen;
+                passwordVisible = false;
+            }
+        });
+    </script>
+</body>
+</html>

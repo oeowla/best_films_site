@@ -18,13 +18,17 @@
     
     <!-- Правая часть - профиль -->
     <div class="header-right">
-        <div class="profile-icon" title="Профиль">
+        {% if user.is_authenticated %}
+            <!-- Пользователь авторизован — ссылка на профиль -->
+            <a href="{% url 'profile' %}" class="profile-icon" title="Профиль">
+        {% else %}
+            <!-- Не авторизован — ссылка на вход -->
+            <a href="{% url 'login' %}" class="profile-icon" title="Войти">
+        {% endif %}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <!-- Полукруг (голова) -->
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <!-- Кружок сверху -->
                 <circle cx="12" cy="7" r="4"></circle>
             </svg>
-        </div>
+        </a>
     </div>
 </header>
